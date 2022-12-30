@@ -16,6 +16,10 @@ mod header;
 use header::{Elf64_Ehdr_Wrapper};
 
 mod section;
+use section::Elf64_Shdr;
+
+use crate::section::{ShdrTab};
+
 mod symbol_table;
 
 fn main() {
@@ -33,4 +37,9 @@ fn main() {
 	header.print_os_abi();
 	header.print_type();
 
+	let sht_off = header.sht_off() as u64;
+	let sh_num = header.sh_num() as usize;
+
+	let sht = ShdrTab::read_shdr_table(&mut f, sht_off, sh_num);
+	sht.print_types();
 }

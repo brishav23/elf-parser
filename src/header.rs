@@ -85,6 +85,21 @@ impl Elf64_Ehdr_Wrapper {
 		Self { ptr: p as *mut Elf64_Ehdr }
 	}
 
+	pub fn sht_off(&self) -> usize {
+		let o = unsafe { (*self.ptr).e_shoff as usize };
+		o
+	}
+
+	pub fn sh_ent_size(&self) -> usize {
+		let s = unsafe { (*self.ptr).e_shentsize as usize };
+		s
+	}
+
+	pub fn sh_num(&self) -> Elf64_Half {
+		let n = unsafe { (*self.ptr).e_shnum as Elf64_Half };
+		n
+	}
+
 	pub fn print_magic(&self) {
 		let p = self.ptr;
 		print!("Magic:\t");
