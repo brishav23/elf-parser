@@ -41,37 +41,36 @@ const ET_HIOS: u16 = 0xFEFF;
 const ET_LOPROC: u16 = 0xFF00; // Processor-specific use
 const ET_HIPROC: u16 = 0xFFFF;
 
-//#[repr(align(2))]
 #[repr(C)]
 pub struct Elf64_Ehdr {
-	e_ident: [u8; 16],
-	e_type: Elf64_Half,
-	e_machine: Elf64_Half,
-	e_version: Elf64_Word,
-	e_entry: Elf64_Addr,
-	e_phoff: Elf64_Off,
-	e_shoff: Elf64_Off,
-	e_flags: Elf64_Word,
-	e_ehsize: Elf64_Half,
-	e_phentsize: Elf64_Half,
-	e_phnum: Elf64_Half,
-	e_shentsize: Elf64_Half,
-	e_shnum: Elf64_Half,
-	e_shstrndx: Elf64_Half,
+	pub e_ident: [u8; 16],
+	pub e_type: Elf64_Half,
+	pub e_machine: Elf64_Half,
+	pub e_version: Elf64_Word,
+	pub e_entry: Elf64_Addr,
+	pub e_phoff: Elf64_Off,
+	pub e_shoff: Elf64_Off,
+	pub e_flags: Elf64_Word,
+	pub e_ehsize: Elf64_Half,
+	pub e_phentsize: Elf64_Half,
+	pub e_phnum: Elf64_Half,
+	pub e_shentsize: Elf64_Half,
+	pub e_shnum: Elf64_Half,
+	pub e_shstrndx: Elf64_Half,
 }
 
+// The reason I use a wrapper instead of boxing an Elf64_Ehdr is becauase I'm reading
+// a repr(C) struct from a file (which I know is laid out correctly in the file) into a buffer.
+// This would avoid the overhead of manually seeking to/reading from the necessary offsets in
+// the file onto the stack, only to copy it to the heap.
+// Although this overhead is probably negligible, I'm learning Rust and wanted an excuse to play
+// with wrapping an unsafe type in case I ever need to use it to interoperate with C libraries
+// or something else (I'm aware this is probably an unnecessary use of unsafe rust in this case).
 pub struct Elf64_Ehdr_Wrapper {
 	pub ptr: *mut Elf64_Ehdr,
 }
 
 impl Elf64_Ehdr_Wrapper {
-	pub fn new() -> Self {
-		let p = unsafe {
-			alloc(Layout::new::<Elf64_Ehdr>()) as *mut Elf64_Ehdr
-		};
-		Self { ptr: p }
-	}
-
 	pub fn read_ehdr(f: &mut File) -> Self {
 		let p = unsafe {
 			alloc(Layout::new::<Elf64_Ehdr>())
@@ -109,7 +108,7 @@ impl Elf64_Ehdr_Wrapper {
 					print!("ELF64");
 				},
 				_ => {
-					print!("Problem with ELF header");
+					print!("OTHER");
 				},
 			};
 		}
@@ -128,7 +127,7 @@ impl Elf64_Ehdr_Wrapper {
 					print!("Big endian");
 				},
 				_ => {
-					print!("Problem with ELF header");
+					print!("OTHER(???)");
 				},
 			};
 		}
@@ -150,7 +149,7 @@ impl Elf64_Ehdr_Wrapper {
 					print!("Standalone/embedded");
 				},
 				_ => {
-					print!("Problem with ELF header");
+					print!("OTHER");
 				},
 			};
 		}
@@ -190,7 +189,7 @@ impl Elf64_Ehdr_Wrapper {
 					print!("HIPROC");
 				},
 				_ => {
-					print!("Problem with ELF header");
+					print!("OTHER");
 				},
 			};
 		}

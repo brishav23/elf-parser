@@ -33,9 +33,4 @@ fn main() {
 	header.print_os_abi();
 	header.print_type();
 
-	// for i in header.e_ident {
-	// 	print!("{:#02x} ", i);
-	// }
-	// println!();
-	// let p: *mut Elf64_Ehdr = (&mut hdr_slice).as_mut_ptr() as *mut Elf64_Ehdr;
 }
