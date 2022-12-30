@@ -44,34 +44,35 @@ const ET_HIPROC: u16 = 0xFFFF;
 //#[repr(align(2))]
 #[repr(C)]
 pub struct Elf64_Ehdr {
-	pub e_ident: [u8; 16],
-	pub e_type: Elf64_Half,
-	pub e_machine: Elf64_Half,
-	pub e_version: Elf64_Word,
-	pub e_entry: Elf64_Addr,
-	pub e_phoff: Elf64_Off,
-	pub e_shoff: Elf64_Off,
-	pub e_flags: Elf64_Word,
-	pub e_ehsize: Elf64_Half,
-	pub e_phentsize: Elf64_Half,
-	pub e_phnum: Elf64_Half,
-	pub e_shentsize: Elf64_Half,
-	pub e_shnum: Elf64_Half,
-	pub e_shstrndx: Elf64_Half,
+	e_ident: [u8; 16],
+	e_type: Elf64_Half,
+	e_machine: Elf64_Half,
+	e_version: Elf64_Word,
+	e_entry: Elf64_Addr,
+	e_phoff: Elf64_Off,
+	e_shoff: Elf64_Off,
+	e_flags: Elf64_Word,
+	e_ehsize: Elf64_Half,
+	e_phentsize: Elf64_Half,
+	e_phnum: Elf64_Half,
+	e_shentsize: Elf64_Half,
+	e_shnum: Elf64_Half,
+	e_shstrndx: Elf64_Half,
 }
 
-impl Elf64_Ehdr {
-	pub fn new() -> Box<Elf64_Ehdr> {
+pub struct Elf64_Ehdr_Wrapper {
+	pub ptr: *mut Elf64_Ehdr,
+}
+
+impl Elf64_Ehdr_Wrapper {
+	pub fn new() -> Self {
 		let p = unsafe {
 			alloc(Layout::new::<Elf64_Ehdr>()) as *mut Elf64_Ehdr
 		};
-		let b = unsafe {
-			Box::from_raw(p)
-		};
-		b
+		Self { ptr: p }
 	}
 
-	pub fn read_ehdr(f: &mut File) -> Box<Elf64_Ehdr> {
+	pub fn read_ehdr(f: &mut File) -> Self {
 		let p = unsafe {
 			alloc(Layout::new::<Elf64_Ehdr>())
 		};
@@ -82,105 +83,125 @@ impl Elf64_Ehdr {
 		f.seek(SeekFrom::Start(0)).unwrap();
 		f.read_exact(slc).unwrap();
 
-		let b = unsafe {
-			Box::from_raw(p as *mut Elf64_Ehdr)
-		};
-		b
+		Self { ptr: p as *mut Elf64_Ehdr }
 	}
 
 	pub fn print_magic(&self) {
+		let p = self.ptr;
 		print!("Magic:\t");
-		for i in self.e_ident {
-			print!("{:#02x} ", i);
+		unsafe {
+			for i in (*p).e_ident {
+				print!("{:#02x} ", i);
+			}
 		}
 		println!();
 	}
 
 	pub fn print_class(&self) {
+		let p = self.ptr;
 		print!("Class:\t");
-		match self.e_ident[EI_CLASS as usize] {
-			ELFCLASS32 => {
-				print!("ELF32");
-			},
-			ELFCLASS64 => {
-				print!("ELF64");
-			},
-			_ => {
-				print!("Problem with ELF header");
-			},
-		};
+		unsafe {
+			match (*p).e_ident[EI_CLASS as usize] {
+				ELFCLASS32 => {
+					print!("ELF32");
+				},
+				ELFCLASS64 => {
+					print!("ELF64");
+				},
+				_ => {
+					print!("Problem with ELF header");
+				},
+			};
+		}
 		println!();
 	}
 
 	pub fn print_data(&self) {
+		let p = self.ptr;
 		print!("Data:\t");
-		match self.e_ident[EI_DATA as usize] {
-			ELFDATA2LSB => {
-				print!("Little endian");
-			},
-			ELFDATA2MSB => {
-				print!("Big endian");
-			},
-			_ => {
-				print!("Problem with ELF header");
-			},
-		};
+		unsafe {
+			match (*p).e_ident[EI_DATA as usize] {
+				ELFDATA2LSB => {
+					print!("Little endian");
+				},
+				ELFDATA2MSB => {
+					print!("Big endian");
+				},
+				_ => {
+					print!("Problem with ELF header");
+				},
+			};
+		}
 		println!();
 	}
 
 	pub fn print_os_abi(&self) {
+		let p = self.ptr;
 		print!("OS/ABI:\t");
-		match self.e_ident[EI_OSABI as usize] {
-			ELFOSABI_SYSV => {
-				print!("System V");
-			},
-			ELFOSABI_HPUX => {
-				print!("HP-UX");
-			},
-			ELFOSABI_STANDALONE => {
-				print!("Standalone/embedded");
-			},
-			_ => {
-				print!("Problem with ELF header");
-			},
-		};
+		unsafe {
+			match (*p).e_ident[EI_OSABI as usize] {
+				ELFOSABI_SYSV => {
+					print!("System V");
+				},
+				ELFOSABI_HPUX => {
+					print!("HP-UX");
+				},
+				ELFOSABI_STANDALONE => {
+					print!("Standalone/embedded");
+				},
+				_ => {
+					print!("Problem with ELF header");
+				},
+			};
+		}
 		println!();
 	}
 
 	pub fn print_type(&self) {
+		let p = self.ptr;
 		print!("Type:\t");
-		match self.e_type {
-			ET_NONE => {
-				print!("NONE");
-			},
-			ET_REL => {
-				print!("REL");
-			},
-			ET_EXEC => {
-				print!("EXEC");
-			},
-			ET_DYN => {
-				print!("DYN");
-			},
-			ET_CORE => {
-				print!("CORE");
-			},
-			ET_LOOS => {
-				print!("LOOS");
-			},
-			ET_HIOS => {
-				print!("HIOS");
-			},
-			ET_LOPROC => {
-				print!("LOPROC");
-			},
-			ET_HIPROC => {
-				print!("HIPROC");
-			},
-			_ => {
-				print!("Problem with ELF header");
-			},
-		};
+		unsafe {
+			match (*p).e_type {
+				ET_NONE => {
+					print!("NONE");
+				},
+				ET_REL => {
+					print!("REL");
+				},
+				ET_EXEC => {
+					print!("EXEC");
+				},
+				ET_DYN => {
+					print!("DYN");
+				},
+				ET_CORE => {
+					print!("CORE");
+				},
+				ET_LOOS => {
+					print!("LOOS");
+				},
+				ET_HIOS => {
+					print!("HIOS");
+				},
+				ET_LOPROC => {
+					print!("LOPROC");
+				},
+				ET_HIPROC => {
+					print!("HIPROC");
+				},
+				_ => {
+					print!("Problem with ELF header");
+				},
+			};
+		}
 		println!();
+	}
+}
+
+impl Drop for Elf64_Ehdr_Wrapper {
+	fn drop(&mut self) {
+		unsafe {
+			dealloc(self.ptr as *mut u8, Layout::new::<Elf64_Ehdr>());
+		}
 	}
 }

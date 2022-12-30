@@ -13,7 +13,8 @@ pub mod types {
 }
 
 mod header;
-use header::{Elf64_Ehdr};
+use header::{Elf64_Ehdr_Wrapper};
+
 mod section;
 mod symbol_table;
 
@@ -24,7 +25,7 @@ fn main() {
 	println!("Filename: {}", argv[1]);
 
 	let mut f: File = File::options().read(true).create(false).open(&argv[1]).unwrap();
-	let header = Elf64_Ehdr::read_ehdr(&mut f);
+	let header = Elf64_Ehdr_Wrapper::read_ehdr(&mut f);
 
 	header.print_magic();
 	header.print_class();
